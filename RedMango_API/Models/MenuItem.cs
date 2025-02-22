@@ -12,7 +12,7 @@ namespace RedMango_API.Models
         public string SpecialTag { get; set; }
         public string Category { get; set; }
         [Range(1, int.MaxValue)]
-        public string Price { get; set; }
+        public Double Price { get; set; }
         [Required]
         public string Image { get; set; }
     }
