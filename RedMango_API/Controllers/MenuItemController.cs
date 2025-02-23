@@ -37,6 +37,7 @@ namespace RedMango_API.Controllers
             if (id == 0)
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
                 return BadRequest(_response);
             }
             else
@@ -45,6 +46,7 @@ namespace RedMango_API.Controllers
                 if (menuItem == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
                     return NotFound(_response);
                 }
                 else
@@ -65,6 +67,8 @@ namespace RedMango_API.Controllers
                 {
                     if (menuItemCreateDTO.File == null || menuItemCreateDTO.File.Length == 0)
                     {
+                        _response.StatusCode = HttpStatusCode.BadRequest;
+                        _response.IsSuccess = false;
                         return BadRequest();
                     }
                     else
@@ -108,6 +112,8 @@ namespace RedMango_API.Controllers
                 {
                     if (menuItemUpdateDTO == null || id != menuItemUpdateDTO.MenuItemId)
                     {
+                        _response.StatusCode = HttpStatusCode.BadRequest;
+                        _response.IsSuccess = false;
                         return BadRequest();
                     }
                     else
@@ -115,6 +121,8 @@ namespace RedMango_API.Controllers
                         MenuItem menuItemFromDB = await _db.MenuItems.FindAsync(id);
                         if (menuItemFromDB == null)
                         {
+                            _response.StatusCode = HttpStatusCode.BadRequest;
+                            _response.IsSuccess = false;
                             return BadRequest();
                         }
                         else
@@ -157,6 +165,8 @@ namespace RedMango_API.Controllers
             {
                 if (id == 0)
                 {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
                     return BadRequest();
                 }
                 else
@@ -164,6 +174,8 @@ namespace RedMango_API.Controllers
                     MenuItem menuItemFromDB = await _db.MenuItems.FindAsync(id);
                     if (menuItemFromDB == null)
                     {
+                        _response.StatusCode = HttpStatusCode.BadRequest;
+                        _response.IsSuccess = false;
                         return BadRequest();
                     }
                     else
