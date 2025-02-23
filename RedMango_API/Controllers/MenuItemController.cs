@@ -6,6 +6,7 @@ using RedMango_API.Models.DTO;
 using RedMango_API.Services;
 using RedMango_API.Utility;
 using System.Net;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace RedMango_API.Controllers
 {
@@ -92,6 +93,57 @@ namespace RedMango_API.Controllers
             }
             catch (Exception ex) 
             { 
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
+        }
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<ApiResponse>> UpdateMenuItem(int id, [FromForm] MenuItemUpdateDTO menuItemUpdateDTO)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (menuItemUpdateDTO == null || id != menuItemUpdateDTO.MenuItemId)
+                    {
+                        return BadRequest();
+                    }
+                    else
+                    {
+                        MenuItem menuItemFromDB = await _db.MenuItems.FindAsync(id);
+                        if (menuItemFromDB == null)
+                        {
+                            return BadRequest();
+                        }
+                        else
+                        {
+                            menuItemFromDB.Name = menuItemUpdateDTO.Name;
+                            menuItemFromDB.Price = menuItemUpdateDTO.Price;
+                            menuItemFromDB.Category = menuItemUpdateDTO.Category;
+                            menuItemFromDB.SpecialTag = menuItemUpdateDTO.SpecialTag;
+                            menuItemFromDB.Description = menuItemUpdateDTO.Description;
+                            if (menuItemUpdateDTO.File != null && menuItemUpdateDTO.File.Length >0)
+                            {
+                                string fileName = $"{Guid.NewGuid()}{Path.GetExtension(menuItemUpdateDTO.File.FileName)}";
+                                await _blobService.DeleteBlob(menuItemFromDB.Image.Split('/').Last(), SD.SD_Storage_Container);
+                                menuItemFromDB.Image = await _blobService.UploadBlob(fileName, SD.SD_Storage_Container, menuItemUpdateDTO.File);
+                            }
+                        }                        
+                        _db.MenuItems.Add(menuItemFromDB);
+                        _db.SaveChanges();
+                        _response.StatusCode = HttpStatusCode.NoContent;
+                        return Ok(_response);
+                    }
+                }
+                else
+                {
+                    _response.IsSuccess = false;
+                }
+            }
+            catch (Exception ex)
+            {
                 _response.IsSuccess = false;
                 _response.ErrorMessages = new List<string>() { ex.ToString() };
             }
