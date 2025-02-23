@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RedMango_API.Models
+namespace RedMango_API.Models.DTO
 {
-    public class MenuItem
+    public class MenuItemUpdateDTO
     {
         [Key]
         public int MenuItemId { get; set; }
@@ -13,7 +13,6 @@ namespace RedMango_API.Models
         public string Category { get; set; }
         [Range(1, int.MaxValue)]
         public double Price { get; set; }
-        [Required]
-        public string Image { get; set; }
+        public IFormFile File { get; set; }
     }
 }
