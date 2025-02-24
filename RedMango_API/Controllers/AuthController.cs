@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using RedMango_API.Data;
 using RedMango_API.Models;
 using RedMango_API.Models.DTO;
-using RedMango_API.Services;
+using RedMango_API.Utility;
+using System.Net;
 
 namespace RedMango_API.Controllers
 {
@@ -17,7 +18,7 @@ namespace RedMango_API.Controllers
         private string secretKey;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public AuthController(AppDBContext db, IBlobService blobService, IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
+        public AuthController(AppDBContext db, IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
         {
             _db = db;
             secretKey = configuration.GetValue<string>("ApiSettings:Secret");
@@ -26,10 +27,64 @@ namespace RedMango_API.Controllers
             _userManager = userManager;
         }
 
-        [HttpPost]
+        [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDTO registerModel)
         {
+            ApplicationUser userFromDB = _db.ApplicationUsers.FirstOrDefault(x=>x.UserName.ToLower() == registerModel.Username.ToLower());
 
+            if (userFromDB != null)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Username already exists");
+                return BadRequest(_response);
+            }
+            else
+            {
+                ApplicationUser newUser = new()
+                {
+                    UserName = registerModel.Username,
+                    Email = registerModel.Username,
+                    NormalizedEmail = registerModel.Username.ToUpper(),
+                    Name = registerModel.Name,
+                };
+                try
+                {
+                    var result = await _userManager.CreateAsync(newUser, registerModel.Password);
+                    if (result.Succeeded)
+                    {
+                        if (!_roleManager.RoleExistsAsync(SD.Role_Admin).GetAwaiter().GetResult())
+                        {
+                            // Create roles in DB
+                            await _roleManager.CreateAsync(new IdentityRole(SD.Role_Admin));
+                            await _roleManager.CreateAsync(new IdentityRole(SD.Role_Customer));
+                        }
+                        if (registerModel.Role.ToLower() == SD.Role_Admin)
+                        {
+                            await _userManager.AddToRoleAsync(newUser, SD.Role_Admin);
+                        }
+                        else
+                        {
+                            await _userManager.AddToRoleAsync(newUser, SD.Role_Customer);
+                        }
+                        _response.StatusCode = HttpStatusCode.OK;
+                        _response.IsSuccess = true;
+                        return Ok(_response);
+                    }
+                    else
+                    {
+                        _response.StatusCode = HttpStatusCode.BadRequest;
+                        _response.IsSuccess = false;
+                        _response.ErrorMessages.Add("Error while registering");
+                        return BadRequest(_response);
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+                return null;
+            } 
         }
     }
 }
