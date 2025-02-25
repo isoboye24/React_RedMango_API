@@ -114,7 +114,7 @@ namespace RedMango_API.Controllers
 
                 SecurityTokenDescriptor tokenDescriptor = new()
                 {
-                    Subject = new System.Security.Claims.ClaimsIdentity(new Claim[]
+                    Subject = new ClaimsIdentity(new Claim[]
                     {
                         new Claim(ClaimTypes.Name, userFromDB.Name),
                         new Claim("id", userFromDB.Id.ToString()),
