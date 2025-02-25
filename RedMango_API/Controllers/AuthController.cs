@@ -1,11 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using RedMango_API.Data;
 using RedMango_API.Models;
 using RedMango_API.Models.DTO;
 using RedMango_API.Utility;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Security.Claims;
+using System.Text;
 
 namespace RedMango_API.Controllers
 {
@@ -104,10 +108,29 @@ namespace RedMango_API.Controllers
             else
             {
                 // generate JWT Token
+                var roles = await _userManager.GetRolesAsync(userFromDB);
+                JwtSecurityTokenHandler tokenHandler = new();
+                byte[] key = Encoding.ASCII.GetBytes(secretKey);
+
+                SecurityTokenDescriptor tokenDescriptor = new()
+                {
+                    Subject = new System.Security.Claims.ClaimsIdentity(new Claim[]
+                    {
+                        new Claim(ClaimTypes.Name, userFromDB.Name),
+                        new Claim("id", userFromDB.Id.ToString()),
+                        new Claim(ClaimTypes.Email, userFromDB.UserName.ToString()),
+                        new Claim(ClaimTypes.Role, roles.FirstOrDefault()),
+                    }),
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                };
+
+                SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+
                 LoginResponseDTO loginResponse = new()
                 {
                     Email = userFromDB.Email,
-                    Token = "REPLACE WITH ACTUAL TOKEN ONCE GENERATED"
+                    Token = tokenHandler.WriteToken(token),
                 };
                 if (loginResponse.Email == null || string.IsNullOrEmpty(loginResponse.Token))
                 {
