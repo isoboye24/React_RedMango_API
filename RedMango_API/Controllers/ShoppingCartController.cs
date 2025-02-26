@@ -102,5 +102,39 @@ namespace RedMango_API.Controllers
             }
             return Ok(_response);
         }
+
+        [HttpGet]
+        public async Task<ActionResult<ApiResponse>> GetShoppingCart(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    return BadRequest(_response);
+                }
+                else
+                {                    
+                    // get shopping cart for a user with all items in cart and menu as well
+                    ShoppingCart shoppingCart = _db.ShoppingCarts.Include(x => x.CartItems).ThenInclude(x => x.MenuItem).FirstOrDefault(x => x.UserId == userId);
+                    if (shoppingCart.CartItems != null && shoppingCart.CartItems.Count > 0)
+                    {
+                        shoppingCart.CartTotal = shoppingCart.CartItems.Sum(x => x.MenuItem.Price * x.Quantity);
+                    }                    
+                    _response.Result = shoppingCart;
+                    _response.IsSuccess = true;
+                    _response.StatusCode = HttpStatusCode.OK;
+                    return Ok(_response);
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return BadRequest(_response);
+        }
     }
 }
