@@ -27,7 +27,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="images\" />
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\images\carrot love.jpg" />
+    <None Include="wwwroot\images\confirmed.jpg" />
+    <None Include="wwwroot\images\hakka noodles.jpg" />
+    <None Include="wwwroot\images\idli.jpg" />
+    <None Include="wwwroot\images\malai kofta.jpg" />
+    <None Include="wwwroot\images\mango.png" />
+    <None Include="wwwroot\images\paneer pizza.jpg" />
+    <None Include="wwwroot\images\paneer tikka.jpg" />
+    <None Include="wwwroot\images\pani puri.jpg" />
+    <None Include="wwwroot\images\rasmalai.jpg" />
+    <None Include="wwwroot\images\spring roll.jpg" />
+    <None Include="wwwroot\images\sweet rolls.jpg" />
   </ItemGroup>
 
 </Project>

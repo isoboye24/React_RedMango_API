@@ -16,11 +16,11 @@ namespace RedMango_API.Controllers
     {
         private readonly AppDBContext _db;
         private ApiResponse _response;
-        private readonly IBlobService _blobService;
-        public MenuItemController(AppDBContext db, IBlobService blobService)
+        //private readonly IBlobService _blobService;
+        public MenuItemController(AppDBContext db)
         {
             _db = db;
-            _blobService = blobService;
+            //_blobService = blobService;
             _response = new ApiResponse();
         }
         [HttpGet]
@@ -74,6 +74,13 @@ namespace RedMango_API.Controllers
                     else
                     {
                         string fileName = $"{Guid.NewGuid()}{Path.GetExtension(menuItemCreateDTO.File.FileName)}";
+                        string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", fileName);
+
+                        using (var fileStream = new FileStream(uploadPath, FileMode.Create))
+                        {
+                            await menuItemCreateDTO.File.CopyToAsync(fileStream);
+                        }
+
                         MenuItem menuItemToCreate = new()
                         {
                             Name = menuItemCreateDTO.Name,
@@ -81,7 +88,8 @@ namespace RedMango_API.Controllers
                             Category = menuItemCreateDTO.Category,
                             SpecialTag = menuItemCreateDTO.SpecialTag,
                             Description = menuItemCreateDTO.Description,
-                            Image = await _blobService.UploadBlob(fileName, SD.SD_Storage_Container, menuItemCreateDTO.File)
+                            //Image = await _blobService.UploadBlob(fileName, SD.SD_Storage_Container, menuItemCreateDTO.File) // Azure account needs to be subscribed
+                            Image = $"/images/{fileName}"
                         };
                         _db.MenuItems.Add(menuItemToCreate);
                         _db.SaveChanges();
@@ -134,12 +142,33 @@ namespace RedMango_API.Controllers
                             menuItemFromDB.Description = menuItemUpdateDTO.Description;
                             if (menuItemUpdateDTO.File != null && menuItemUpdateDTO.File.Length >0)
                             {
-                                string fileName = $"{Guid.NewGuid()}{Path.GetExtension(menuItemUpdateDTO.File.FileName)}";
-                                await _blobService.DeleteBlob(menuItemFromDB.Image.Split('/').Last(), SD.SD_Storage_Container);
-                                menuItemFromDB.Image = await _blobService.UploadBlob(fileName, SD.SD_Storage_Container, menuItemUpdateDTO.File);
+                                string wwwRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+                                if (!string.IsNullOrEmpty(menuItemFromDB.Image))
+                                {
+                                    string oldImagePath = Path.Combine(wwwRootPath, menuItemFromDB.Image.TrimStart('/'));
+                                    if (System.IO.File.Exists(oldImagePath))
+                                    {
+                                        System.IO.File.Delete(oldImagePath);
+                                    }
+                                }
+                                else
+                                {
+                                    string newFileName = $"{Guid.NewGuid()}{Path.GetExtension(menuItemUpdateDTO.File.FileName)}";
+                                    // Azure account needs to be subscribed
+                                    //await _blobService.DeleteBlob(menuItemFromDB.Image.Split('/').Last(), SD.SD_Storage_Container);
+                                    //menuItemFromDB.Image = await _blobService.UploadBlob(fileName, SD.SD_Storage_Container, menuItemUpdateDTO.File);
+
+                                    string uploadPath = Path.Combine(wwwRootPath, "images", newFileName);
+                                    using (var fileStream = new FileStream(uploadPath, FileMode.Create))
+                                    {
+                                        await menuItemUpdateDTO.File.CopyToAsync(fileStream);
+                                    }
+                                    menuItemFromDB.Image = $"/images/{newFileName}";
+                                }
                             }
                         }                        
-                        _db.MenuItems.Add(menuItemFromDB);
+                        _db.MenuItems.Update(menuItemFromDB);
                         _db.SaveChanges();
                         _response.StatusCode = HttpStatusCode.NoContent;
                         return Ok(_response);
@@ -179,8 +208,19 @@ namespace RedMango_API.Controllers
                         return BadRequest();
                     }
                     else
-                    {                       
-                        await _blobService.DeleteBlob(menuItemFromDB.Image.Split('/').Last(), SD.SD_Storage_Container);
+                    {
+                        //await _blobService.DeleteBlob(menuItemFromDB.Image.Split('/').Last(), SD.SD_Storage_Container); // Azure account needs to be subscribed
+
+                        string wwwRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+                        if (!string.IsNullOrEmpty(menuItemFromDB.Image))
+                        {
+                            string oldImagePath = Path.Combine(wwwRootPath, menuItemFromDB.Image.TrimStart('/'));
+                            if (System.IO.File.Exists(oldImagePath))
+                            {
+                                System.IO.File.Delete(oldImagePath);
+                            }
+                        }
                         int miliseconds = 2000;
                         Thread.Sleep(miliseconds);
                     }

@@ -16,8 +16,10 @@ builder.Services.AddDbContext<AppDBContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultDBConnection"));
 });
-builder.Services.AddSingleton(x=> new BlobServiceClient(builder.Configuration.GetConnectionString("StorageAccount")));
-builder.Services.AddSingleton<IBlobService, BlobService>();
+// Azure account needs to be subscribed
+
+//builder.Services.AddSingleton(x=> new BlobServiceClient(builder.Configuration.GetConnectionString("StorageAccount")));
+//builder.Services.AddSingleton<IBlobService, BlobService>();
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AppDBContext>();
 
 builder.Services.Configure<IdentityOptions>(options =>
@@ -99,6 +101,7 @@ app.UseHttpsRedirection();
 app.UseCors(x=>x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 
 app.MapControllers();
 
