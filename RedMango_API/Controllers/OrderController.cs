@@ -128,5 +128,59 @@ namespace RedMango_API.Controllers
             }
             return _response;
         }
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<ApiResponse>> UpdateOrderHeader(int id, [FromBody] OrderHeaderUpdateDTO orderHeaderUpdateDTO)
+        {
+            try
+            {
+                if (orderHeaderUpdateDTO == null || id != orderHeaderUpdateDTO.OrderHeaderId)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    return BadRequest();
+                }
+                OrderHeader orderFromDb = _db.OrderHeaders.FirstOrDefault(x => x.OrderHeaderId == id);
+                if (orderFromDb == null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    return BadRequest();
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(orderHeaderUpdateDTO.PickUpName))
+                    {
+                        orderFromDb.PickUpName = orderHeaderUpdateDTO.PickUpName;
+                    }
+                    if (!string.IsNullOrEmpty(orderHeaderUpdateDTO.PickUpPhoneNumber))
+                    {
+                        orderFromDb.PickUpPhoneNumber = orderHeaderUpdateDTO.PickUpPhoneNumber;
+                    }
+                    if (!string.IsNullOrEmpty(orderHeaderUpdateDTO.PickUpEmail))
+                    {
+                        orderFromDb.PickUpEmail = orderHeaderUpdateDTO.PickUpEmail;
+                    }
+                    if (!string.IsNullOrEmpty(orderHeaderUpdateDTO.Status))
+                    {
+                        orderFromDb.Status = orderHeaderUpdateDTO.Status;
+                    }
+                    if (!string.IsNullOrEmpty(orderHeaderUpdateDTO.StripePaymentIntendId))
+                    {
+                        orderFromDb.StripePaymentIntendId = orderHeaderUpdateDTO.StripePaymentIntendId;
+                    }
+                    _db.SaveChanges();
+                    _response.StatusCode = HttpStatusCode.NoContent;
+                    _response.IsSuccess = true;
+                    return Ok(_response);
+                }                
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
+        }
     }
 }
