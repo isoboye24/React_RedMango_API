@@ -108,16 +108,15 @@ namespace RedMango_API.Controllers
         {
             try
             {
+                ShoppingCart shoppingCart;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.IsSuccess = false;
-                    return BadRequest(_response);
+                    shoppingCart = new();
                 }
                 else
                 {                    
                     // get shopping cart for a user with all items in cart and menu as well
-                    ShoppingCart shoppingCart = _db.ShoppingCarts.Include(x => x.CartItems).ThenInclude(x => x.MenuItem).FirstOrDefault(x => x.UserId == userId);
+                     shoppingCart = _db.ShoppingCarts.Include(x => x.CartItems).ThenInclude(x => x.MenuItem).FirstOrDefault(x => x.UserId == userId);
                     if (shoppingCart.CartItems != null && shoppingCart.CartItems.Count > 0)
                     {
                         shoppingCart.CartTotal = shoppingCart.CartItems.Sum(x => x.MenuItem.Price * x.Quantity);
