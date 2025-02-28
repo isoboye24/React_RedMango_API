@@ -152,20 +152,17 @@ namespace RedMango_API.Controllers
                                         System.IO.File.Delete(oldImagePath);
                                     }
                                 }
-                                else
-                                {
-                                    string newFileName = $"{Guid.NewGuid()}{Path.GetExtension(menuItemUpdateDTO.File.FileName)}";
-                                    // Azure account needs to be subscribed
-                                    //await _blobService.DeleteBlob(menuItemFromDB.Image.Split('/').Last(), SD.SD_Storage_Container);
-                                    //menuItemFromDB.Image = await _blobService.UploadBlob(fileName, SD.SD_Storage_Container, menuItemUpdateDTO.File);
+                                string newFileName = $"{Guid.NewGuid()}{Path.GetExtension(menuItemUpdateDTO.File.FileName)}";
+                                // Azure account needs to be subscribed
+                                //await _blobService.DeleteBlob(menuItemFromDB.Image.Split('/').Last(), SD.SD_Storage_Container);
+                                //menuItemFromDB.Image = await _blobService.UploadBlob(fileName, SD.SD_Storage_Container, menuItemUpdateDTO.File);
 
-                                    string uploadPath = Path.Combine(wwwRootPath, "images", newFileName);
-                                    using (var fileStream = new FileStream(uploadPath, FileMode.Create))
-                                    {
-                                        await menuItemUpdateDTO.File.CopyToAsync(fileStream);
-                                    }
-                                    menuItemFromDB.Image = $"/images/{newFileName}";
+                                string uploadPath = Path.Combine(wwwRootPath, "images", newFileName);
+                                using (var fileStream = new FileStream(uploadPath, FileMode.Create))
+                                {
+                                    await menuItemUpdateDTO.File.CopyToAsync(fileStream);
                                 }
+                                menuItemFromDB.Image = $"/images/{newFileName}";
                             }
                         }                        
                         _db.MenuItems.Update(menuItemFromDB);
